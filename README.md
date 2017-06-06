@@ -1,4 +1,4 @@
-# Serilog.Sinks.Map
+# Serilog.Sinks.Map [![Build status](https://ci.appveyor.com/api/projects/status/m7svuyb4bkve3q6y?svg=true)](https://ci.appveyor.com/project/serilog/serilog-sinks-map)
 
 A Serilog sink wrapper that to a set of sinks keyed on a property value.
 
