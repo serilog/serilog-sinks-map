@@ -1,4 +1,4 @@
-# Serilog.Sinks.Map [![Build status](https://ci.appveyor.com/api/projects/status/m7svuyb4bkve3q6y?svg=true)](https://ci.appveyor.com/project/serilog/serilog-sinks-map)
+# Serilog.Sinks.Map [![Build status](https://ci.appveyor.com/api/projects/status/m7svuyb4bkve3q6y?svg=true)](https://ci.appveyor.com/project/serilog/serilog-sinks-map) [![NuGet Pre Release](https://img.shields.io/nuget/vpre/Serilog.Sinks.Map.svg)](https://www.nuget.org/packages/serilog.sinks.map)
 
 A Serilog sink wrapper that to a set of sinks keyed on a property value.
 
