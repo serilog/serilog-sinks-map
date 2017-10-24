@@ -24,41 +24,62 @@ namespace Serilog.Sinks.Map
     {
         readonly Func<LogEvent, TKey> _keySelector;
         readonly Action<TKey, LoggerSinkConfiguration> _configure;
+        readonly MappedSinkLifetime _sinkLifetime;
         readonly object _sync = new object();
         readonly Dictionary<TKey, Logger> _sinkMap = new Dictionary<TKey, Logger>();
+        bool _disposed;
 
-        public MappedSink(Func<LogEvent, TKey> keySelector, Action<TKey, LoggerSinkConfiguration> configure)
+        public MappedSink(Func<LogEvent, TKey> keySelector,
+                          Action<TKey, LoggerSinkConfiguration> configure,
+                          MappedSinkLifetime sinkLifetime)
         {
             _keySelector = keySelector;
             _configure = configure;
+            _sinkLifetime = sinkLifetime;
         }
 
         public void Emit(LogEvent logEvent)
         {
             var key = _keySelector(logEvent);
 
-            Logger sink;
             lock (_sync)
             {
-                if (!_sinkMap.TryGetValue(key, out sink))
+                if (_disposed)
+                    throw new ObjectDisposedException(nameof(MappedSink<TKey>), "The mapped sink has been disposed.");
+
+                Logger sink;
+                if (_sinkLifetime == MappedSinkLifetime.Event ||
+                    !_sinkMap.TryGetValue(key, out sink))
                 {
                     var config = new LoggerConfiguration()
                         .MinimumLevel.Is(LevelAlias.Minimum);
 
                     _configure(key, config.WriteTo);
-                    sink = _sinkMap[key] = config.CreateLogger();
+                    sink = config.CreateLogger();
+                }
+
+                if (_sinkLifetime == MappedSinkLifetime.Pipeline)
+                {
+                    _sinkMap[key] = sink;
+                    sink.Write(logEvent);
+                }
+                else
+                {
+                    using (sink)
+                        sink.Write(logEvent);
                 }
             }
-
-            // Outside the lock to improve concurrency; this means the sink
-            // may throw ObjectDisposedException, which is fine.
-            sink.Write(logEvent);
         }
 
         public void Dispose()
         {
             lock (_sync)
             {
+                if (_disposed)
+                    return;
+
+                _disposed = true;
+
                 var values = _sinkMap.Values;
                 _sinkMap.Clear();
                 foreach (var sink in values)

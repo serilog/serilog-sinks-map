@@ -32,6 +32,7 @@ namespace Serilog
         /// <param name="keyPropertyName">The name of a scalar-valued property to use as a sink selector.</param>
         /// <param name="configure">An action to configure the target sink given a key property value.</param>
         /// <param name="defaultKey">The key property value to use when no appropriate value is attached to the log event.</param>
+        /// <param name="sinkLifetime">Controls how target sinks will be created and shut down as events are processed.</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required 
         /// in order to write an event to the sink.</param>
         /// <param name="levelSwitch">A level switch to dynamically select the minimum level for events passed to the  sink.</param>
@@ -42,10 +43,12 @@ namespace Serilog
             string keyPropertyName,
             Action<string, LoggerSinkConfiguration> configure,
             string defaultKey = null,
+            MappedSinkLifetime sinkLifetime = MappedSinkLifetime.Pipeline,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
             LoggingLevelSwitch levelSwitch = null)
         {
-            return Map<string>(loggerSinkConfiguration, keyPropertyName, configure, defaultKey, restrictedToMinimumLevel, levelSwitch);
+            return Map<string>(loggerSinkConfiguration, keyPropertyName, configure, defaultKey,
+                               sinkLifetime, restrictedToMinimumLevel, levelSwitch);
         }
 
         /// <summary>
@@ -55,6 +58,7 @@ namespace Serilog
         /// <param name="keyPropertyName">The name of a scalar-valued property to use as a sink selector.</param>
         /// <param name="configure">An action to configure the target sink given a key property value.</param>
         /// <param name="defaultKey">The key property value to use when no appropriate value is attached to the log event.</param>
+        /// <param name="sinkLifetime">Controls how target sinks will be created and shut down as events are processed.</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required 
         /// in order to write an event to the sink.</param>
         /// <param name="levelSwitch">A level switch to dynamically select the minimum level for events passed to the  sink.</param>
@@ -65,6 +69,7 @@ namespace Serilog
             string keyPropertyName,
             Action<TKey, LoggerSinkConfiguration> configure,
             TKey defaultKey = default(TKey),
+            MappedSinkLifetime sinkLifetime = MappedSinkLifetime.Pipeline,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
             LoggingLevelSwitch levelSwitch = null)
         {
@@ -82,7 +87,7 @@ namespace Serilog
                 }
 
                 return defaultKey;
-            }, configure, restrictedToMinimumLevel, levelSwitch);
+            }, configure, sinkLifetime, restrictedToMinimumLevel, levelSwitch);
         }
 
         /// <summary>
@@ -91,6 +96,7 @@ namespace Serilog
         /// <param name="loggerSinkConfiguration">The logger sink configuration.</param>
         /// <param name="configure">An action to configure the target sink given a key property value.</param>
         /// <param name="keySelector">A function to select a key value given a log event.</param>
+        /// <param name="sinkLifetime">Controls how target sinks will be created and shut down as events are processed.</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required 
         /// in order to write an event to the sink.</param>
         /// <param name="levelSwitch">A level switch to dynamically select the minimum level for events passed to the  sink.</param>
@@ -100,6 +106,7 @@ namespace Serilog
             this LoggerSinkConfiguration loggerSinkConfiguration,
             Func<LogEvent, TKey> keySelector,
             Action<TKey, LoggerSinkConfiguration> configure,
+            MappedSinkLifetime sinkLifetime = MappedSinkLifetime.Pipeline,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
             LoggingLevelSwitch levelSwitch = null)
         {
@@ -107,7 +114,7 @@ namespace Serilog
             if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
             if (configure == null) throw new ArgumentNullException(nameof(configure));
 
-            return loggerSinkConfiguration.Sink(new MappedSink<TKey>(keySelector, configure), restrictedToMinimumLevel, levelSwitch);
+            return loggerSinkConfiguration.Sink(new MappedSink<TKey>(keySelector, configure, sinkLifetime), restrictedToMinimumLevel, levelSwitch);
         }
     }
 }

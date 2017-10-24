@@ -26,5 +26,43 @@ namespace Serilog.Sinks.Map.Tests
             Assert.Equal("Alice", received[0].Item1);
             Assert.Equal("Bob", received[1].Item1);
         }
+
+        [Fact]
+        public void WithPipelineLifetimeSinksAreRetained()
+        {
+            var a = Some.LogEvent("Hello, {Name}!", "Alice");
+            var calls = 0;
+
+            var log = new LoggerConfiguration()
+                .WriteTo.Map("Name", (name, wt) =>
+                {
+                    ++calls;
+                })
+                .CreateLogger();
+
+            log.Write(a);
+            log.Write(a);
+
+            Assert.Equal(1, calls);
+        }
+
+        [Fact]
+        public void WithEventLifetimeSinksAreRecycled()
+        {
+            var a = Some.LogEvent("Hello, {Name}!", "Alice");
+            var calls = 0;
+
+            var log = new LoggerConfiguration()
+                .WriteTo.Map("Name", (name, wt) =>
+                {
+                    ++calls;
+                }, sinkLifetime: MappedSinkLifetime.Event)
+                .CreateLogger();
+
+            log.Write(a);
+            log.Write(a);
+
+            Assert.Equal(2, calls);
+        }
     }
 }
