@@ -24,41 +24,86 @@ namespace Serilog.Sinks.Map
     {
         readonly Func<LogEvent, TKey> _keySelector;
         readonly Action<TKey, LoggerSinkConfiguration> _configure;
+        readonly int? _sinkMapCountLimit;
         readonly object _sync = new object();
         readonly Dictionary<TKey, Logger> _sinkMap = new Dictionary<TKey, Logger>();
+        bool _disposed;
 
-        public MappedSink(Func<LogEvent, TKey> keySelector, Action<TKey, LoggerSinkConfiguration> configure)
+        public MappedSink(Func<LogEvent, TKey> keySelector,
+                          Action<TKey, LoggerSinkConfiguration> configure,
+                          int? sinkMapCountLimit)
         {
             _keySelector = keySelector;
             _configure = configure;
+            _sinkMapCountLimit = sinkMapCountLimit;
         }
 
         public void Emit(LogEvent logEvent)
         {
             var key = _keySelector(logEvent);
 
-            Logger sink;
             lock (_sync)
             {
-                if (!_sinkMap.TryGetValue(key, out sink))
-                {
-                    var config = new LoggerConfiguration()
-                        .MinimumLevel.Is(LevelAlias.Minimum);
+                if (_disposed)
+                    throw new ObjectDisposedException(nameof(MappedSink<TKey>), "The mapped sink has been disposed.");
 
-                    _configure(key, config.WriteTo);
-                    sink = _sinkMap[key] = config.CreateLogger();
+                if (_sinkMap.TryGetValue(key, out var existing))
+                {
+                    existing.Write(logEvent);
+                    return;
+                }
+
+                var config = new LoggerConfiguration()
+                    .MinimumLevel.Is(LevelAlias.Minimum);
+
+                _configure(key, config.WriteTo);
+                var sink = config.CreateLogger();
+
+                if (_sinkMapCountLimit == 0)
+                {
+                    using (sink)
+                        sink.Write(logEvent);
+                }
+                else if (_sinkMapCountLimit == null || _sinkMapCountLimit > _sinkMap.Count)
+                {
+                    // This case is a little faster as no EH nor iteration is required
+                    _sinkMap[key] = sink;
+                    sink.Write(logEvent);
+                }
+                else
+                {
+                    _sinkMap[key] = sink;
+                    try
+                    {
+                        sink.Write(logEvent);
+                    }
+                    finally
+                    {
+                        while(_sinkMap.Count > _sinkMapCountLimit.Value)
+                        {
+                            foreach (var k in _sinkMap.Keys)
+                            {
+                                if (key == null && k == null || key != null && key.Equals(k))
+                                    continue;
+
+                                _sinkMap.Remove(k);
+                                break;
+                            }
+                        }                        
+                    }
                 }
             }
-
-            // Outside the lock to improve concurrency; this means the sink
-            // may throw ObjectDisposedException, which is fine.
-            sink.Write(logEvent);
         }
 
         public void Dispose()
         {
             lock (_sync)
             {
+                if (_disposed)
+                    return;
+
+                _disposed = true;
+
                 var values = _sinkMap.Values;
                 _sinkMap.Clear();
                 foreach (var sink in values)
