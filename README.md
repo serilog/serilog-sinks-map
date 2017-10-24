@@ -15,19 +15,31 @@ a function that configures the sinks based on each property value.
 
 ```csharp
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Map("Name", (name, wt) => wt.RollingFile($"./logs/log-{name}-{{Date}}.txt"))
+    .WriteTo.Map("Name", (name, wt) => wt.File($"./logs/log-{name}.txt"))
     .CreateLogger();
 
 Log.Information("Hello, {Name}!", "Alice");
-// -> Event written to log-Alice-20170606.txt
+// -> Event written to log-Alice.txt
 
 Log.Information("Hello, {Name}!", "Bob");
-// -> Event written to log-Bob-20170606.txt
+// -> Event written to log-Bob.txt
 
 Log.CloseAndFlush();
 ```
 
-**Important:** the target sinks opened by this sink won't be closed/disposed until the
-mapped sink is. This means the library is useful for dispatching to a finite number of sinks,
+### Limiting the number of open sinks
+
+By default, the target sinks opened by this sink won't be closed/disposed until the
+mapped sink is. This is efficient for dispatching to a finite number of sinks,
 e.g. file-per-log-level and so-on, but isn't suitable when the set of possible key values is
 open-ended.
+
+To limit the number of target sinks that will be kept open in the map, specify `sinkMapCountLimit`:
+
+```csharp
+    .WriteTo.Map("Name",
+                 (name, wt) => wt.File($"./logs/log-{name}.txt"),
+                 sinkMapCountLimit: 10)
+```
+
+To keep no sinks open, i.e. close them immediately after processing each event, a `sinkMapCountLimit` of zero may be specified.
