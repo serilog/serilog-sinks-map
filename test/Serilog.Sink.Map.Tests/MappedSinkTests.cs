@@ -28,7 +28,7 @@ namespace Serilog.Sinks.Map.Tests
         }
 
         [Fact]
-        public void WithPipelineLifetimeSinksAreRetained()
+        public void WithUnlimitedMapSizeSinksAreRetained()
         {
             var a = Some.LogEvent("Hello, {Name}!", "Alice");
             var calls = 0;
@@ -47,7 +47,7 @@ namespace Serilog.Sinks.Map.Tests
         }
 
         [Fact]
-        public void WithEventLifetimeSinksAreRecycled()
+        public void WithMapSize1LastSinksIsRetained()
         {
             var a = Some.LogEvent("Hello, {Name}!", "Alice");
             var calls = 0;
@@ -56,7 +56,47 @@ namespace Serilog.Sinks.Map.Tests
                 .WriteTo.Map("Name", (name, wt) =>
                 {
                     ++calls;
-                }, sinkLifetime: MappedSinkLifetime.Event)
+                }, sinkMapCountLimit: 1)
+                .CreateLogger();
+
+            log.Write(a);
+            log.Write(a);
+
+            Assert.Equal(1, calls);
+        }
+
+        [Fact]
+        public void WithMapSizeNLastNSinksAreRetained()
+        {
+            var a = Some.LogEvent("Hello, {Name}!", "Alice");
+            var b = Some.LogEvent("Hello, {Name}!", "Bob");
+            var calls = 0;
+
+            var log = new LoggerConfiguration()
+                .WriteTo.Map("Name", (name, wt) =>
+                {
+                    ++calls;
+                }, sinkMapCountLimit: 1)
+                .CreateLogger();
+
+            log.Write(a);
+            log.Write(b);
+            log.Write(a);
+
+            Assert.Equal(3, calls);
+        }
+
+        [Fact]
+        public void WithZeroMapSizeSinksAreRecycledImmediately()
+        {
+            var a = Some.LogEvent("Hello, {Name}!", "Alice");
+            var calls = 0;
+
+            var log = new LoggerConfiguration()
+                .WriteTo.Map("Name", (name, wt) =>
+                {
+                    ++calls;
+                }, sinkMapCountLimit: 0)
                 .CreateLogger();
 
             log.Write(a);
