@@ -32,7 +32,7 @@ namespace Serilog
         /// <param name="keyPropertyName">The name of a scalar-valued property to use as a sink selector.</param>
         /// <param name="configure">An action to configure the target sink given a key property value.</param>
         /// <param name="defaultKey">The key property value to use when no appropriate value is attached to the log event.</param>
-        /// <param name="sinkMapCountLimit">Limits the number of sinks that will be held open concurrnently within the map.
+        /// <param name="sinkMapCountLimit">Limits the number of sinks that will be held open concurrently within the map.
         /// The default is to let the map grow unbounded; smaller numbers will cause sinks to be evicted when the limit is
         /// exceeded. To keep no sinks open, zero may be specified.</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required 
@@ -60,7 +60,7 @@ namespace Serilog
         /// <param name="keyPropertyName">The name of a scalar-valued property to use as a sink selector.</param>
         /// <param name="configure">An action to configure the target sink given a key property value.</param>
         /// <param name="defaultKey">The key property value to use when no appropriate value is attached to the log event.</param>
-        /// <param name="sinkMapCountLimit">Limits the number of sinks that will be held open concurrnently within the map.
+        /// <param name="sinkMapCountLimit">Limits the number of sinks that will be held open concurrently within the map.
         /// The default is to let the map grow unbounded; smaller numbers will cause sinks to be evicted when the limit is
         /// exceeded. To keep no sinks open, zero may be specified.</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required 
@@ -100,7 +100,7 @@ namespace Serilog
         /// <param name="loggerSinkConfiguration">The logger sink configuration.</param>
         /// <param name="configure">An action to configure the target sink given a key property value.</param>
         /// <param name="keySelector">A function to select a key value given a log event.</param>
-        /// <param name="sinkMapCountLimit">Limits the number of sinks that will be held open concurrnently within the map.
+        /// <param name="sinkMapCountLimit">Limits the number of sinks that will be held open concurrently within the map.
         /// The default is to let the map grow unbounded; smaller numbers will cause sinks to be evicted when the limit is
         /// exceeded. To keep no sinks open, zero may be specified.</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required 
