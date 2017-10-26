@@ -153,5 +153,22 @@ namespace Serilog.Sinks.Map.Tests
             Assert.True(sinkA.IsDisposed);
             Assert.False(sinkB.IsDisposed);
         }
+
+        [Fact]
+        public void NullReferenceTypeKeysAreSupported()
+        {
+            var a = Some.LogEvent("Hello, {Name}!", null);
+
+            var received = new List<(string, LogEvent)>();
+
+            var log = new LoggerConfiguration()
+                .WriteTo.Map("Name", (name, wt) => wt.Sink(new DelegatingSink(e => received.Add((name, e)))))
+                .CreateLogger();
+
+            log.Write(a);
+
+            Assert.Equal(1, received.Count);
+            Assert.Equal(null, received[0].Item1);
+        }
     }
 }

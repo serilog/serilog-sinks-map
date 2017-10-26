@@ -1,4 +1,4 @@
-﻿// Serilog.Sinks.Seq Copyright 2017 Serilog Contributors
+﻿// Serilog.Sinks.Map Copyright 2017 Serilog Contributors
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ namespace Serilog.Sinks.Map
         readonly Action<TKey, LoggerSinkConfiguration> _configure;
         readonly int? _sinkMapCountLimit;
         readonly object _sync = new object();
-        readonly Dictionary<TKey, Logger> _sinkMap = new Dictionary<TKey, Logger>();
+        readonly Dictionary<KeyValuePair<TKey, bool>, Logger> _sinkMap = new Dictionary<KeyValuePair<TKey, bool>, Logger>();
         bool _disposed;
 
         public MappedSink(Func<LogEvent, TKey> keySelector,
@@ -40,7 +40,7 @@ namespace Serilog.Sinks.Map
 
         public void Emit(LogEvent logEvent)
         {
-            var key = _keySelector(logEvent);
+            var key = new KeyValuePair<TKey, bool>(_keySelector(logEvent), false);
 
             lock (_sync)
             {
@@ -56,7 +56,7 @@ namespace Serilog.Sinks.Map
                 var config = new LoggerConfiguration()
                     .MinimumLevel.Is(LevelAlias.Minimum);
 
-                _configure(key, config.WriteTo);
+                _configure(key.Key, config.WriteTo);
                 var sink = config.CreateLogger();
 
                 if (_sinkMapCountLimit == 0)
@@ -83,7 +83,7 @@ namespace Serilog.Sinks.Map
                         {
                             foreach (var k in _sinkMap.Keys)
                             {
-                                if (key == null && k == null || key != null && key.Equals(k))
+                                if (key.Equals(k))
                                     continue;
 
                                 var removed = _sinkMap[k];
