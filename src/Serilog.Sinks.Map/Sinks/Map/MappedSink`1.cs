@@ -86,7 +86,9 @@ namespace Serilog.Sinks.Map
                                 if (key == null && k == null || key != null && key.Equals(k))
                                     continue;
 
+                                var removed = _sinkMap[k];
                                 _sinkMap.Remove(k);
+                                removed.Dispose();
                                 break;
                             }
                         }                        
