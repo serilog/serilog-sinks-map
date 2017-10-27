@@ -157,7 +157,7 @@ namespace Serilog.Sinks.Map.Tests
         [Fact]
         public void NullReferenceTypeKeysAreSupported()
         {
-            var a = Some.LogEvent("Hello, {Name}!", null);
+            var a = Some.LogEvent("Hello, {Name}!", new object[] { null });
 
             var received = new List<(string, LogEvent)>();
 
@@ -169,6 +169,75 @@ namespace Serilog.Sinks.Map.Tests
 
             Assert.Equal(1, received.Count);
             Assert.Equal(null, received[0].Item1);
+        }
+
+        [Fact]
+        public void NonGenericVersionShouldNotCheckKeyType()
+        {
+            var a = Some.LogEvent("Hello, {Name}!", 123_456);
+
+            var received = new List<(string, LogEvent)>();
+
+            var log = new LoggerConfiguration()
+                .WriteTo.Map("Name", (name, wt) => wt.Sink(new DelegatingSink(e => received.Add((name, e)))))
+                .CreateLogger();
+
+            log.Write(a);
+
+            Assert.Single(received);
+            Assert.Equal("123456", received[0].Item1);
+        }
+
+        [Fact]
+        public void GenericVersionShouldCheckKeyType()
+        {
+            var a = Some.LogEvent("Hello, {Name}!", 123_456);
+            var b = Some.LogEvent("Hello, {Name}!", "Alice");
+
+            var received = new List<(string, LogEvent)>();
+
+            var log = new LoggerConfiguration()
+                .WriteTo.Map<string>("Name", (name, wt) => wt.Sink(new DelegatingSink(e => received.Add((name, e)))))
+                .CreateLogger();
+
+            log.Write(a);
+            log.Write(b);
+
+            Assert.Single(received);
+            Assert.Equal("Alice", received[0].Item1);
+        }
+
+        [Fact]
+        public void ShouldSkipEmitWhenNoAppropriateValueIsAttachedToLogEvent()
+        {
+            var a = Some.LogEvent("Hello, World!");
+
+            var calls = 0;
+
+            var log = new LoggerConfiguration()
+                .WriteTo.Map("Name", (_, __) => ++calls)
+                .CreateLogger();
+
+            log.Write(a);
+
+            Assert.Equal(0, calls);
+        }
+
+        [Fact]
+        public void DefaultKeyIsUsedWhenNoAppropriateValueIsAttachedToLogEvent()
+        {
+            var a = Some.LogEvent("Hello, World!");
+
+            var received = new List<(string, LogEvent)>();
+
+            var log = new LoggerConfiguration()
+                .WriteTo.Map("Name", (name, wt) => wt.Sink(new DelegatingSink(e => received.Add((name, e)))), defaultKey: "anonymous")
+                .CreateLogger();
+
+            log.Write(a);
+
+            Assert.Single(received);
+            Assert.Equal("anonymous", received[0].Item1);
         }
     }
 }

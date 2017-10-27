@@ -22,14 +22,14 @@ namespace Serilog.Sinks.Map
 {
     class MappedSink<TKey> : ILogEventSink, IDisposable
     {
-        readonly Func<LogEvent, TKey> _keySelector;
+        readonly KeySelector<TKey> _keySelector;
         readonly Action<TKey, LoggerSinkConfiguration> _configure;
         readonly int? _sinkMapCountLimit;
         readonly object _sync = new object();
         readonly Dictionary<KeyValuePair<TKey, bool>, Logger> _sinkMap = new Dictionary<KeyValuePair<TKey, bool>, Logger>();
         bool _disposed;
 
-        public MappedSink(Func<LogEvent, TKey> keySelector,
+        public MappedSink(KeySelector<TKey> keySelector,
                           Action<TKey, LoggerSinkConfiguration> configure,
                           int? sinkMapCountLimit)
         {
@@ -40,7 +40,12 @@ namespace Serilog.Sinks.Map
 
         public void Emit(LogEvent logEvent)
         {
-            var key = new KeyValuePair<TKey, bool>(_keySelector(logEvent), false);
+            if (!_keySelector(logEvent, out TKey keyValue))
+            {
+                return;
+            }
+
+            var key = new KeyValuePair<TKey, bool>(keyValue, false);
 
             lock (_sync)
             {
@@ -79,7 +84,7 @@ namespace Serilog.Sinks.Map
                     }
                     finally
                     {
-                        while(_sinkMap.Count > _sinkMapCountLimit.Value)
+                        while (_sinkMap.Count > _sinkMapCountLimit.Value)
                         {
                             foreach (var k in _sinkMap.Keys)
                             {
@@ -91,7 +96,7 @@ namespace Serilog.Sinks.Map
                                 removed.Dispose();
                                 break;
                             }
-                        }                        
+                        }
                     }
                 }
             }
