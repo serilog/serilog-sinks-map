@@ -21,15 +21,6 @@ using Serilog.Sinks.Map;
 namespace Serilog
 {
     /// <summary>
-    /// A function delegate to select a key value given a log event, if exists.
-    /// </summary>
-    /// <typeparam name="TKey">The type of the key value.</typeparam>
-    /// <param name="logEvent">The log event.</param>
-    /// <param name="key">The selected key.</param>
-    /// <returns>true, if a key can be selected, or false, otherwise.</returns>
-    public delegate bool KeySelector<TKey>(LogEvent logEvent, out TKey key);
-
-    /// <summary>
     /// Extends Serilog configuration with methods for selecting sink instances base on a log event property.
     /// </summary>
     public static class MapLoggerConfigurationExtensions
@@ -52,8 +43,8 @@ namespace Serilog
         public static LoggerConfiguration Map(
             this LoggerSinkConfiguration loggerSinkConfiguration,
             string keyPropertyName,
-            Action<string, LoggerSinkConfiguration> configure,
             string defaultKey,
+            Action<string, LoggerSinkConfiguration> configure,
             int? sinkMapCountLimit = null,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
             LoggingLevelSwitch levelSwitch = null)
@@ -88,8 +79,8 @@ namespace Serilog
         public static LoggerConfiguration Map<TKey>(
             this LoggerSinkConfiguration loggerSinkConfiguration,
             string keyPropertyName,
-            Action<TKey, LoggerSinkConfiguration> configure,
             TKey defaultKey,
+            Action<TKey, LoggerSinkConfiguration> configure,
             int? sinkMapCountLimit = null,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
             LoggingLevelSwitch levelSwitch = null)

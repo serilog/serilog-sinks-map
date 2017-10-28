@@ -20,6 +20,15 @@ using Serilog.Events;
 
 namespace Serilog.Sinks.Map
 {
+    /// <summary>
+    /// A function delegate to select a key value given a log event, if exists.
+    /// </summary>
+    /// <typeparam name="TKey">The type of the key value.</typeparam>
+    /// <param name="logEvent">The log event.</param>
+    /// <param name="key">The selected key.</param>
+    /// <returns>true, if a key can be selected, or false, otherwise.</returns>
+    public delegate bool KeySelector<TKey>(LogEvent logEvent, out TKey key);
+
     class MappedSink<TKey> : ILogEventSink, IDisposable
     {
         readonly KeySelector<TKey> _keySelector;

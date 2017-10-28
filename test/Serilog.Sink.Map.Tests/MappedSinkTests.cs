@@ -231,7 +231,7 @@ namespace Serilog.Sinks.Map.Tests
             var received = new List<(string, LogEvent)>();
 
             var log = new LoggerConfiguration()
-                .WriteTo.Map("Name", (name, wt) => wt.Sink(new DelegatingSink(e => received.Add((name, e)))), defaultKey: "anonymous")
+                .WriteTo.Map("Name", "anonymous",(name, wt) => wt.Sink(new DelegatingSink(e => received.Add((name, e)))))
                 .CreateLogger();
 
             log.Write(a);
