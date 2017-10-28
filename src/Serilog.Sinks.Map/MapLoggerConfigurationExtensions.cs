@@ -43,14 +43,22 @@ namespace Serilog
         public static LoggerConfiguration Map(
             this LoggerSinkConfiguration loggerSinkConfiguration,
             string keyPropertyName,
+            string defaultKey,
             Action<string, LoggerSinkConfiguration> configure,
-            string defaultKey = null,
             int? sinkMapCountLimit = null,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
             LoggingLevelSwitch levelSwitch = null)
         {
-            return Map<string>(loggerSinkConfiguration, keyPropertyName, configure, defaultKey,
-                               sinkMapCountLimit, restrictedToMinimumLevel, levelSwitch);
+            return Map(loggerSinkConfiguration, le =>
+            {
+                if (le.Properties.TryGetValue(keyPropertyName, out var v) &&
+                    v is ScalarValue sv)
+                {
+                    return sv.Value?.ToString();
+                }
+
+                return defaultKey;
+            }, configure, sinkMapCountLimit, restrictedToMinimumLevel, levelSwitch);
         }
 
         /// <summary>
@@ -71,8 +79,8 @@ namespace Serilog
         public static LoggerConfiguration Map<TKey>(
             this LoggerSinkConfiguration loggerSinkConfiguration,
             string keyPropertyName,
+            TKey defaultKey,
             Action<TKey, LoggerSinkConfiguration> configure,
-            TKey defaultKey = default(TKey),
             int? sinkMapCountLimit = null,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
             LoggingLevelSwitch levelSwitch = null)
@@ -121,8 +129,129 @@ namespace Serilog
             if (configure == null) throw new ArgumentNullException(nameof(configure));
             if (sinkMapCountLimit.HasValue && sinkMapCountLimit.Value < 0) throw new ArgumentOutOfRangeException(nameof(sinkMapCountLimit));
 
-            return loggerSinkConfiguration.Sink(new MappedSink<TKey>(keySelector, configure, sinkMapCountLimit),
-                                                restrictedToMinimumLevel, levelSwitch);
+            return loggerSinkConfiguration.Sink(
+                new MappedSink<TKey>(
+                    (LogEvent logEvent, out TKey key) =>
+                    {
+                        key = keySelector(logEvent);
+                        return true;
+                    },
+                    configure,
+                    sinkMapCountLimit),
+                restrictedToMinimumLevel,
+                levelSwitch);
+        }
+
+        /// <summary>
+        /// Dispatch log events to a set of sinks keyed on a log event property.
+        /// </summary>
+        /// <param name="loggerSinkConfiguration">The logger sink configuration.</param>
+        /// <param name="keyPropertyName">The name of a scalar-valued property to use as a sink selector.</param>
+        /// <param name="configure">An action to configure the target sink given a key property value.</param>
+        /// <param name="sinkMapCountLimit">Limits the number of sinks that will be held open concurrently within the map.
+        /// The default is to let the map grow unbounded; smaller numbers will cause sinks to be evicted when the limit is
+        /// exceeded. To keep no sinks open, zero may be specified.</param>
+        /// <param name="restrictedToMinimumLevel">The minimum log event level required 
+        /// in order to write an event to the sink.</param>
+        /// <param name="levelSwitch">A level switch to dynamically select the minimum level for events passed to the  sink.</param>
+        /// <returns>Logger configuration, allowing configuration to continue.</returns>
+        /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
+        public static LoggerConfiguration Map(
+            this LoggerSinkConfiguration loggerSinkConfiguration,
+            string keyPropertyName,
+            Action<string, LoggerSinkConfiguration> configure,
+            int? sinkMapCountLimit = null,
+            LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
+            LoggingLevelSwitch levelSwitch = null)
+        {
+            return Map(
+                loggerSinkConfiguration,
+                (LogEvent le, out string key) =>
+                {
+                    if (le.Properties.TryGetValue(keyPropertyName, out var v) &&
+                        v is ScalarValue sv)
+                    {
+                        key = sv.Value?.ToString();
+                        return true;
+                    }
+
+                    key = null;
+                    return false;
+                }, configure, sinkMapCountLimit, restrictedToMinimumLevel, levelSwitch);
+        }
+
+        /// <summary>
+        /// Dispatch log events to a set of sinks keyed on a log event property.
+        /// </summary>
+        /// <param name="loggerSinkConfiguration">The logger sink configuration.</param>
+        /// <param name="keyPropertyName">The name of a scalar-valued property to use as a sink selector.</param>
+        /// <param name="configure">An action to configure the target sink given a key property value.</param>
+        /// <param name="sinkMapCountLimit">Limits the number of sinks that will be held open concurrently within the map.
+        /// The default is to let the map grow unbounded; smaller numbers will cause sinks to be evicted when the limit is
+        /// exceeded. To keep no sinks open, zero may be specified.</param>
+        /// <param name="restrictedToMinimumLevel">The minimum log event level required 
+        /// in order to write an event to the sink.</param>
+        /// <param name="levelSwitch">A level switch to dynamically select the minimum level for events passed to the  sink.</param>
+        /// <returns>Logger configuration, allowing configuration to continue.</returns>
+        /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
+        public static LoggerConfiguration Map<TKey>(
+            this LoggerSinkConfiguration loggerSinkConfiguration,
+            string keyPropertyName,
+            Action<TKey, LoggerSinkConfiguration> configure,
+            int? sinkMapCountLimit = null,
+            LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
+            LoggingLevelSwitch levelSwitch = null)
+        {
+            if (loggerSinkConfiguration == null) throw new ArgumentNullException(nameof(loggerSinkConfiguration));
+            if (keyPropertyName == null) throw new ArgumentNullException(nameof(keyPropertyName));
+            if (configure == null) throw new ArgumentNullException(nameof(configure));
+
+            return Map(
+                loggerSinkConfiguration,
+                (LogEvent le, out TKey key) =>
+                {
+                    if (le.Properties.TryGetValue(keyPropertyName, out var v) &&
+                        v is ScalarValue sv &&
+                        sv.Value is TKey k)
+                    {
+                        key = k;
+                        return true;
+                    }
+
+                    key = default(TKey);
+                    return false;
+                },
+                configure, sinkMapCountLimit, restrictedToMinimumLevel, levelSwitch);
+        }
+
+        /// <summary>
+        /// Dispatch log events to a set of sinks keyed on a log event property.
+        /// </summary>
+        /// <param name="loggerSinkConfiguration">The logger sink configuration.</param>
+        /// <param name="configure">An action to configure the target sink given a key property value.</param>
+        /// <param name="keySelector">A function to select a key value given a log event.</param>
+        /// <param name="sinkMapCountLimit">Limits the number of sinks that will be held open concurrently within the map.
+        /// The default is to let the map grow unbounded; smaller numbers will cause sinks to be evicted when the limit is
+        /// exceeded. To keep no sinks open, zero may be specified.</param>
+        /// <param name="restrictedToMinimumLevel">The minimum log event level required 
+        /// in order to write an event to the sink.</param>
+        /// <param name="levelSwitch">A level switch to dynamically select the minimum level for events passed to the  sink.</param>
+        /// <returns>Logger configuration, allowing configuration to continue.</returns>
+        /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
+        public static LoggerConfiguration Map<TKey>(
+            this LoggerSinkConfiguration loggerSinkConfiguration,
+            KeySelector<TKey> keySelector,
+            Action<TKey, LoggerSinkConfiguration> configure,
+            int? sinkMapCountLimit = null,
+            LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
+            LoggingLevelSwitch levelSwitch = null)
+        {
+            if (loggerSinkConfiguration == null) throw new ArgumentNullException(nameof(loggerSinkConfiguration));
+            if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
+            if (configure == null) throw new ArgumentNullException(nameof(configure));
+            if (sinkMapCountLimit.HasValue && sinkMapCountLimit.Value < 0) throw new ArgumentOutOfRangeException(nameof(sinkMapCountLimit));
+
+            return loggerSinkConfiguration.Sink(new MappedSink<TKey>(keySelector, configure, sinkMapCountLimit), restrictedToMinimumLevel, levelSwitch);
         }
     }
 }
