@@ -10,12 +10,13 @@ Install the package from NuGet:
 Install-Package Serilog.Sinks.Map -Pre
 ```
 
-The `WriteTo.Map()` method accepts a property name to use as a sink selector, and
+The `WriteTo.Map()` method accepts a property name to use as a sink selector, a default value
+to use when the property is not attached, and
 a function that configures the sinks based on each property value.
 
 ```csharp
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Map("Name", (name, wt) => wt.File($"./logs/log-{name}.txt"))
+    .WriteTo.Map("Name", "Other", (name, wt) => wt.File($"./logs/log-{name}.txt"))
     .CreateLogger();
 
 Log.Information("Hello, {Name}!", "Alice");
@@ -23,6 +24,9 @@ Log.Information("Hello, {Name}!", "Alice");
 
 Log.Information("Hello, {Name}!", "Bob");
 // -> Event written to log-Bob.txt
+
+Log.Information("Shutting down");
+// -> Event written to log-Other.txt
 
 Log.CloseAndFlush();
 ```
@@ -38,6 +42,7 @@ To limit the number of target sinks that will be kept open in the map, specify `
 
 ```csharp
     .WriteTo.Map("Name",
+                 "Other",
                  (name, wt) => wt.File($"./logs/log-{name}.txt"),
                  sinkMapCountLimit: 10)
 ```
