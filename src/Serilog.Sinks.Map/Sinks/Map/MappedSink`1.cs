@@ -35,8 +35,11 @@ namespace Serilog.Sinks.Map
         readonly Action<TKey, LoggerSinkConfiguration> _configure;
         readonly int? _sinkMapCountLimit;
         readonly object _sync = new object();
-        readonly Dictionary<KeyValuePair<TKey, bool>, Logger> _sinkMap = new Dictionary<KeyValuePair<TKey, bool>, Logger>();
+        readonly Dictionary<KeyValuePair<TKey, bool>, ILogEventSink> _sinkMap = new Dictionary<KeyValuePair<TKey, bool>, ILogEventSink>();
         bool _disposed;
+
+        // ReSharper disable once StaticMemberInGenericType
+        static readonly LoggerSinkConfiguration LoggerSinkConfiguration = new LoggerConfiguration().WriteTo;
 
         public MappedSink(KeySelector<TKey> keySelector,
                           Action<TKey, LoggerSinkConfiguration> configure,
@@ -47,12 +50,14 @@ namespace Serilog.Sinks.Map
             _sinkMapCountLimit = sinkMapCountLimit;
         }
 
+        // All writes are synchronized, even though this could be avoided in a few cases; the reasoning behind this is that
+        // changes in synchronization behavior between writes and with different map count limits could lead to surprises
+        // when using the sink with log files, which are one of the main use cases. Since most sinks already synchronize
+        // writes or offload work to background threads, this is a reasonable trade-off.
         public void Emit(LogEvent logEvent)
         {
-            if (!_keySelector(logEvent, out TKey keyValue))
-            {
+            if (!_keySelector(logEvent, out var keyValue))
                 return;
-            }
 
             var key = new KeyValuePair<TKey, bool>(keyValue, false);
 
@@ -63,33 +68,29 @@ namespace Serilog.Sinks.Map
 
                 if (_sinkMap.TryGetValue(key, out var existing))
                 {
-                    existing.Write(logEvent);
+                    existing.Emit(logEvent);
                     return;
                 }
 
-                var config = new LoggerConfiguration()
-                    .MinimumLevel.Is(LevelAlias.Minimum);
-
-                _configure(key.Key, config.WriteTo);
-                var sink = config.CreateLogger();
+                var sink = CreateSink(key.Key);
 
                 if (_sinkMapCountLimit == 0)
                 {
-                    using (sink)
-                        sink.Write(logEvent);
+                    using (sink as IDisposable)
+                        sink.Emit(logEvent);
                 }
                 else if (_sinkMapCountLimit == null || _sinkMapCountLimit > _sinkMap.Count)
                 {
                     // This case is a little faster as no EH nor iteration is required
                     _sinkMap[key] = sink;
-                    sink.Write(logEvent);
+                    sink.Emit(logEvent);
                 }
                 else
                 {
                     _sinkMap[key] = sink;
                     try
                     {
-                        sink.Write(logEvent);
+                        sink.Emit(logEvent);
                     }
                     finally
                     {
@@ -102,13 +103,27 @@ namespace Serilog.Sinks.Map
 
                                 var removed = _sinkMap[k];
                                 _sinkMap.Remove(k);
-                                removed.Dispose();
+                                (removed as IDisposable)?.Dispose();
                                 break;
                             }
                         }
                     }
                 }
             }
+        }
+
+        ILogEventSink CreateSink(TKey key)
+        {
+            // Allocates a few delegates, but avoids a lot more allocation in the `LoggerConfiguration`/`Logger` machinery.
+            ILogEventSink sink = null;
+            LoggerSinkConfiguration.Wrap(
+                LoggerSinkConfiguration,
+                s => sink = s,
+                config => _configure(key, config),
+                LevelAlias.Minimum,
+                null);
+
+            return sink;
         }
 
         public void Dispose()
@@ -124,7 +139,7 @@ namespace Serilog.Sinks.Map
                 _sinkMap.Clear();
                 foreach (var sink in values)
                 {
-                    sink.Dispose();
+                    (sink as IDisposable)?.Dispose();
                 }
             }
         }
