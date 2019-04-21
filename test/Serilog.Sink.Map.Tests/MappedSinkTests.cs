@@ -231,7 +231,41 @@ namespace Serilog.Sinks.Map.Tests
             var received = new List<(string, LogEvent)>();
 
             var log = new LoggerConfiguration()
-                .WriteTo.Map("Name", "anonymous",(name, wt) => wt.Sink(new DelegatingSink(e => received.Add((name, e)))))
+                .WriteTo.Map("Name", "anonymous", (name, wt) => wt.Sink(new DelegatingSink(e => received.Add((name, e)))))
+                .CreateLogger();
+
+            log.Write(a);
+
+            Assert.Single(received);
+            Assert.Equal("anonymous", received[0].Item1);
+        }
+
+        [Fact]
+        public void DefaultKeyIsUsedWhenNullValueIsAttachedToLogEvent()
+        {
+            var a = Some.LogEvent("Hello, {Name}!", (object)null);
+
+            var received = new List<(string, LogEvent)>();
+
+            var log = new LoggerConfiguration()
+                .WriteTo.Map("Name", "anonymous", (name, wt) => wt.Sink(new DelegatingSink(e => received.Add((name, e)))))
+                .CreateLogger();
+
+            log.Write(a);
+
+            Assert.Single(received);
+            Assert.Equal("anonymous", received[0].Item1);
+        }
+
+        [Fact]
+        public void DefaultKeyIsUsedWhenGenericNullValueIsAttachedToLogEvent()
+        {
+            var a = Some.LogEvent("Hello, {Name}!", (object)null);
+
+            var received = new List<(string, LogEvent)>();
+
+            var log = new LoggerConfiguration()
+                .WriteTo.Map<string>("Name", "anonymous", (name, wt) => wt.Sink(new DelegatingSink(e => received.Add((name, e)))))
                 .CreateLogger();
 
             log.Write(a);
