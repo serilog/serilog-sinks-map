@@ -1,8 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>A Serilog sink wrapper that dispatches events based on a property value.</Description>
-    <VersionPrefix>1.0.0</VersionPrefix>
+    <VersionPrefix>1.0.1</VersionPrefix>
     <RootNamespace>Serilog</RootNamespace>
     <Authors>Serilog Contributors</Authors>
     <Copyright>Copyright © Serilog Contributors 2017-2019</Copyright>
