@@ -131,12 +131,16 @@ namespace Serilog.Sinks.Map
         {
             lock (_sync)
             {
+<<<<<<< HEAD
                 if (_disposed)
                     return;
 
                 _disposed = true;
 
+                var values = _sinkMap.Values;
+=======
                 var values = _sinkMap.Values.ToArray();
+>>>>>>> Fixes #16 - failure to dispose sinks on shut-down
                 _sinkMap.Clear();
                 foreach (var sink in values)
                 {

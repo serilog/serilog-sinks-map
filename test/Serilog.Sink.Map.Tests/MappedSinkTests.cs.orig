@@ -26,6 +26,7 @@ namespace Serilog.Sinks.Map.Tests
             Assert.Equal("Alice", received[0].Item1);
             Assert.Equal("Bob", received[1].Item1);
         }
+<<<<<<< HEAD
 
         [Fact]
         public void WithUnlimitedMapSizeSinksAreRetained()
@@ -107,10 +108,16 @@ namespace Serilog.Sinks.Map.Tests
 
         [Fact]
         public void WithNoMapSizeLimitSinksAreNotDisposed()
+=======
+        
+        [Fact]
+        public void SinksAreDisposedWithMapSinkDispose()
+>>>>>>> Fixes #16 - failure to dispose sinks on shut-down
         {
             var a = Some.LogEvent("Hello, {Name}!", "Alice");
 
             var sink = new DisposeTrackingSink();
+<<<<<<< HEAD
             var log = new LoggerConfiguration()
                 .WriteTo.Map("Name", (name, wt) => wt.Sink(sink))
                 .CreateLogger();
@@ -273,13 +280,7 @@ namespace Serilog.Sinks.Map.Tests
             Assert.Single(received);
             Assert.Equal("anonymous", received[0].Item1);
         }
-        
-        [Fact]
-        public void SinksAreDisposedWithMapSinkDispose()
-        {
-            var a = Some.LogEvent("Hello, {Name}!", "Alice");
-
-            var sink = new DisposeTrackingSink();
+=======
             using (var log = new LoggerConfiguration()
                 .WriteTo.Map("Name", (name, wt) => wt.Sink(sink))
                 .CreateLogger())
@@ -289,5 +290,6 @@ namespace Serilog.Sinks.Map.Tests
 
             Assert.True(sink.IsDisposed);
         }
+>>>>>>> Fixes #16 - failure to dispose sinks on shut-down
     }
 }
