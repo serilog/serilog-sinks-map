@@ -18,5 +18,3 @@ namespace Serilog.Sinks.Map.Tests.Support
         }
     }
 }
-    }
-}
