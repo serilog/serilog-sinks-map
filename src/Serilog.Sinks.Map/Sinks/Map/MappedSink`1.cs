@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Serilog.Configuration;
 using Serilog.Core;
 using Serilog.Events;
@@ -135,7 +136,7 @@ namespace Serilog.Sinks.Map
 
                 _disposed = true;
 
-                var values = _sinkMap.Values;
+                var values = _sinkMap.Values.ToArray();
                 _sinkMap.Clear();
                 foreach (var sink in values)
                 {
