@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Serilog.Core;
 using Serilog.Events;
 
@@ -6,6 +6,8 @@ namespace Serilog.Sinks.Map.Tests.Support
 {
     class DisposeTrackingSink : ILogEventSink, IDisposable
     {
+        public bool IsDisposed { get; set; }
+
         public void Emit(LogEvent logEvent)
         {
         }
@@ -14,7 +16,5 @@ namespace Serilog.Sinks.Map.Tests.Support
         {
             IsDisposed = true;
         }
-
-        public bool IsDisposed { get; private set; }
     }
 }

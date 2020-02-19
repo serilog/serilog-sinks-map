@@ -273,5 +273,21 @@ namespace Serilog.Sinks.Map.Tests
             Assert.Single(received);
             Assert.Equal("anonymous", received[0].Item1);
         }
+        
+        [Fact]
+        public void SinksAreDisposedWithMapSinkDispose()
+        {
+            var a = Some.LogEvent("Hello, {Name}!", "Alice");
+
+            var sink = new DisposeTrackingSink();
+            using (var log = new LoggerConfiguration()
+                .WriteTo.Map("Name", (name, wt) => wt.Sink(sink))
+                .CreateLogger())
+            {
+                log.Write(a);
+            }
+
+            Assert.True(sink.IsDisposed);
+        }
     }
 }
