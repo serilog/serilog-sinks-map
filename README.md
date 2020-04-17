@@ -7,12 +7,19 @@ A Serilog sink wrapper that dispatches events based on a property value.
 Install the package from NuGet:
 
 ```powershell
-Install-Package Serilog.Sinks.Map -Pre
+dotnet add package Serilog.Sinks.Map
 ```
 
 The `WriteTo.Map()` method accepts a property name to use as a sink selector, a default value
-to use when the property is not attached, and
-a function that configures the sinks based on each property value.
+to use when the property is not attached, and a function that configures the sinks based on each property value.
+
+For example, when using _Serilog.Sinks.File_:
+
+```powershell
+dotnet add package Serilog.Sinks.File
+```
+
+The value of a log event property like `Name` can be inserted into log filenames:
 
 ```csharp
 Log.Logger = new LoggerConfiguration()
