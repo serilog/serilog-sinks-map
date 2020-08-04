@@ -55,3 +55,7 @@ To limit the number of target sinks that will be kept open in the map, specify `
 ```
 
 To keep no sinks open, i.e. close them immediately after processing each event, a `sinkMapCountLimit` of zero may be specified.
+
+### Configuration with `<appSettings>` and `appSettings.json`
+
+_Serilog.Sinks.Map_ is built around a mapping function, and as such, isn't able to be configured using XML or JSON configuration.
