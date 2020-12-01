@@ -5,19 +5,17 @@
     <VersionPrefix>1.0.2</VersionPrefix>
     <RootNamespace>Serilog</RootNamespace>
     <Authors>Serilog Contributors</Authors>
-    <Copyright>Copyright © Serilog Contributors 2017-2019</Copyright>
-    <TargetFrameworks>netstandard1.0;netstandard2.0</TargetFrameworks>
+    <Copyright>Copyright © Serilog Contributors</Copyright>
+    <TargetFrameworks>netstandard1.0;netstandard2.0;net5.0</TargetFrameworks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <AssemblyName>Serilog.Sinks.Map</AssemblyName>
     <AssemblyOriginatorKeyFile>../../assets/Serilog.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
-    <PackageId>Serilog.Sinks.Map</PackageId>
-    <PackageTags>serilog;</PackageTags>
-    <PackageIconUrl>https://serilog.net/images/serilog-sink-nuget.png</PackageIconUrl>
+    <PackageTags>serilog</PackageTags>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/serilog/serilog-sinks-map</PackageProjectUrl>
-    <PackageLicenseUrl>http://www.apache.org/licenses/LICENSE-2.0</PackageLicenseUrl>
     <RepositoryUrl>https://github.com/serilog/serilog-sinks-map</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <GenerateAssemblyVersionAttribute>true</GenerateAssemblyVersionAttribute>
@@ -25,6 +23,10 @@
   
   <ItemGroup>
     <PackageReference Include="Serilog" Version="2.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\assets\icon.png" Pack="true" Visible="false" PackagePath="" />
   </ItemGroup>
 
 </Project>
