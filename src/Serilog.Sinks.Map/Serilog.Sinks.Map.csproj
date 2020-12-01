@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>A Serilog sink wrapper that dispatches events based on a property value.</Description>
-    <VersionPrefix>1.0.2</VersionPrefix>
+    <VersionPrefix>1.0.3</VersionPrefix>
     <RootNamespace>Serilog</RootNamespace>
     <Authors>Serilog Contributors</Authors>
     <Copyright>Copyright © Serilog Contributors</Copyright>
