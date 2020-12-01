@@ -167,8 +167,8 @@ namespace Serilog.Sinks.Map.Tests
 
             log.Write(a);
 
-            Assert.Equal(1, received.Count);
-            Assert.Equal(null, received[0].Item1);
+            Assert.Single(received);
+            Assert.Null(received[0].Item1);
         }
 
         [Fact]

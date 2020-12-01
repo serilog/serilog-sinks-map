@@ -7,12 +7,19 @@ A Serilog sink wrapper that dispatches events based on a property value.
 Install the package from NuGet:
 
 ```powershell
-Install-Package Serilog.Sinks.Map -Pre
+dotnet add package Serilog.Sinks.Map
 ```
 
 The `WriteTo.Map()` method accepts a property name to use as a sink selector, a default value
-to use when the property is not attached, and
-a function that configures the sinks based on each property value.
+to use when the property is not attached, and a function that configures the sinks based on each property value.
+
+For example, when using _Serilog.Sinks.File_:
+
+```powershell
+dotnet add package Serilog.Sinks.File
+```
+
+The value of a log event property like `Name` can be inserted into log filenames:
 
 ```csharp
 Log.Logger = new LoggerConfiguration()
@@ -48,3 +55,7 @@ To limit the number of target sinks that will be kept open in the map, specify `
 ```
 
 To keep no sinks open, i.e. close them immediately after processing each event, a `sinkMapCountLimit` of zero may be specified.
+
+### Configuration with `<appSettings>` and `appSettings.json`
+
+_Serilog.Sinks.Map_ is built around a mapping function, and as such, isn't able to be configured using XML or JSON configuration.

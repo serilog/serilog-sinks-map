@@ -39,9 +39,6 @@ namespace Serilog.Sinks.Map
         readonly Dictionary<KeyValuePair<TKey, bool>, ILogEventSink> _sinkMap = new Dictionary<KeyValuePair<TKey, bool>, ILogEventSink>();
         bool _disposed;
 
-        // ReSharper disable once StaticMemberInGenericType
-        static readonly LoggerSinkConfiguration LoggerSinkConfiguration = new LoggerConfiguration().WriteTo;
-
         public MappedSink(KeySelector<TKey> keySelector,
                           Action<TKey, LoggerSinkConfiguration> configure,
                           int? sinkMapCountLimit)
@@ -118,7 +115,7 @@ namespace Serilog.Sinks.Map
             // Allocates a few delegates, but avoids a lot more allocation in the `LoggerConfiguration`/`Logger` machinery.
             ILogEventSink sink = null;
             LoggerSinkConfiguration.Wrap(
-                LoggerSinkConfiguration,
+                new LoggerConfiguration().WriteTo,
                 s => sink = s,
                 config => _configure(key, config),
                 LevelAlias.Minimum,
