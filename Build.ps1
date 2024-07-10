@@ -1,31 +1,42 @@
+Write-Output "build: Build started"
+
 Push-Location $PSScriptRoot
 
-if(Test-Path .\artifacts) { Remove-Item .\artifacts -Force -Recurse }
+if(Test-Path .\artifacts) {
+	Write-Output "build: Cleaning ./artifacts"
+	Remove-Item ./artifacts -Force -Recurse
+}
 
 & dotnet restore --no-cache
 
-$branch = @{ $true = $env:APPVEYOR_REPO_BRANCH; $false = $(git symbolic-ref --short -q HEAD) }[$env:APPVEYOR_REPO_BRANCH -ne $NULL];
-$revision = @{ $true = "{0:00000}" -f [convert]::ToInt32("0" + $env:APPVEYOR_BUILD_NUMBER, 10); $false = "local" }[$env:APPVEYOR_BUILD_NUMBER -ne $NULL];
-$suffix = @{ $true = ""; $false = "$branch-$revision"}[$branch -eq "master" -and $revision -ne "local"]
+$branch = @{ $true = $env:APPVEYOR_REPO_BRANCH; $false = $(git symbolic-ref --short -q HEAD) }[$NULL -ne $env:APPVEYOR_REPO_BRANCH];
+$revision = @{ $true = "{0:00000}" -f [convert]::ToInt32("0" + $env:APPVEYOR_BUILD_NUMBER, 10); $false = "local" }[$NULL -ne $env:APPVEYOR_BUILD_NUMBER];
+$suffix = @{ $true = ""; $false = "$($branch.Substring(0, [math]::Min(10,$branch.Length)))-$revision"}[$branch -eq "main" -and $revision -ne "local"]
 
-foreach ($src in ls src/Serilog.*) {
+Write-Output "build: Package version suffix is $suffix"
+
+foreach ($src in Get-ChildItem src/*) {
     Push-Location $src
 
-    if($suffix) {
-        & dotnet pack -c Release -o ..\..\.\artifacts --version-suffix=$suffix --include-source
+	Write-Output "build: Packaging project in $src"
+
+    if ($suffix) {
+        & dotnet pack -c Release /p:ContinuousIntegrationBuild=True --include-source -o ../../artifacts --version-suffix=$suffix
     } else {
-        & dotnet pack -c Release -o ..\..\.\artifacts --include-source
+        & dotnet pack -c Release /p:ContinuousIntegrationBuild=True --include-source -o ../../artifacts
     }
-    if($LASTEXITCODE -ne 0) { exit 1 }    
+    if($LASTEXITCODE -ne 0) { throw "Packaging failed" }
 
     Pop-Location
 }
 
-foreach ($test in ls test/Serilog.*.Tests) {
+foreach ($test in Get-ChildItem test/*.Tests) {
     Push-Location $test
 
+	Write-Output "build: Testing project in $test"
+
     & dotnet test -c Release
-    if($LASTEXITCODE -ne 0) { exit 2 }
+    if($LASTEXITCODE -ne 0) { throw "Testing failed" }
 
     Pop-Location
 }
