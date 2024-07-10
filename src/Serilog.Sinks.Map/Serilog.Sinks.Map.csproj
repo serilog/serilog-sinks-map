@@ -21,8 +21,6 @@
         <PackageIcon>icon.png</PackageIcon>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <PackageProjectUrl>https://github.com/serilog/serilog-sinks-map</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/serilog/serilog-sinks-map</RepositoryUrl>
-        <RepositoryType>git</RepositoryType>
         <GenerateAssemblyVersionAttribute>true</GenerateAssemblyVersionAttribute>
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
