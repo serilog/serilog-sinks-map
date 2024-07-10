@@ -21,9 +21,9 @@ foreach ($src in Get-ChildItem src/*) {
 	Write-Output "build: Packaging project in $src"
 
     if ($suffix) {
-        & dotnet pack -c Release /p:ContinuousIntegrationBuild=True --include-source -o ../../artifacts --version-suffix=$suffix
+        & dotnet pack -c Release /p:ContinuousIntegrationBuild=True -o ../../artifacts --version-suffix=$suffix
     } else {
-        & dotnet pack -c Release /p:ContinuousIntegrationBuild=True --include-source -o ../../artifacts
+        & dotnet pack -c Release /p:ContinuousIntegrationBuild=True -o ../../artifacts
     }
     if($LASTEXITCODE -ne 0) { throw "Packaging failed" }
 
