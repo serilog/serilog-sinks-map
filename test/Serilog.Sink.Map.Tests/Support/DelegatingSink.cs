@@ -2,20 +2,19 @@
 using Serilog.Core;
 using Serilog.Events;
 
-namespace Serilog.Sinks.Map.Tests.Support
+namespace Serilog.Sinks.Map.Tests.Support;
+
+public class DelegatingSink : ILogEventSink
 {
-    public class DelegatingSink : ILogEventSink
+    readonly Action<LogEvent> _write;
+
+    public DelegatingSink(Action<LogEvent> write)
     {
-        readonly Action<LogEvent> _write;
+        _write = write ?? throw new ArgumentNullException(nameof(write));
+    }
 
-        public DelegatingSink(Action<LogEvent> write)
-        {
-            _write = write ?? throw new ArgumentNullException(nameof(write));
-        }
-
-        public void Emit(LogEvent logEvent)
-        {
-            _write(logEvent);
-        }
+    public void Emit(LogEvent logEvent)
+    {
+        _write(logEvent);
     }
 }

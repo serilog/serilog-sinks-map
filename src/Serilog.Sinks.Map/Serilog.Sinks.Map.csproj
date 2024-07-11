@@ -1,32 +1,43 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <Description>A Serilog sink wrapper that dispatches events based on a property value.</Description>
-    <VersionPrefix>1.0.2</VersionPrefix>
-    <RootNamespace>Serilog</RootNamespace>
-    <Authors>Serilog Contributors</Authors>
-    <Copyright>Copyright © Serilog Contributors</Copyright>
-    <TargetFrameworks>netstandard1.0;netstandard2.0;net5.0</TargetFrameworks>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <AssemblyOriginatorKeyFile>../../assets/Serilog.snk</AssemblyOriginatorKeyFile>
-    <SignAssembly>true</SignAssembly>
-    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
-    <PackageTags>serilog</PackageTags>
-    <PackageIcon>icon.png</PackageIcon>
-    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/serilog/serilog-sinks-map</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/serilog/serilog-sinks-map</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <GenerateAssemblyVersionAttribute>true</GenerateAssemblyVersionAttribute>
-  </PropertyGroup>
-  
-  <ItemGroup>
-    <PackageReference Include="Serilog" Version="2.8.0" />
-  </ItemGroup>
+    <PropertyGroup>
+        <Description>A Serilog sink wrapper that dispatches events based on a property value.</Description>
+        <VersionPrefix>2.0.0</VersionPrefix>
+        <RootNamespace>Serilog</RootNamespace>
+        <Authors>Serilog Contributors</Authors>
+        <Copyright>Copyright © Serilog Contributors</Copyright>
+        <!-- .NET Framework version targeting is frozen at these two TFMs. -->
+        <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT'">net471;net462</TargetFrameworks>
+        <!-- Policy is to trim TFM-specific builds to `netstandard2.0`, `net6.0`,
+        all active LTS versions, and optionally the latest RTM version, when releasing new
+        major Serilog versions. -->
+        <TargetFrameworks>$(TargetFrameworks);net8.0;net6.0;netstandard2.0</TargetFrameworks>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <AssemblyOriginatorKeyFile>../../assets/Serilog.snk</AssemblyOriginatorKeyFile>
+        <SignAssembly>true</SignAssembly>
+        <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+        <PackageTags>serilog</PackageTags>
+        <PackageIcon>icon.png</PackageIcon>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+        <PackageProjectUrl>https://github.com/serilog/serilog-sinks-map</PackageProjectUrl>
+        <GenerateAssemblyVersionAttribute>true</GenerateAssemblyVersionAttribute>
+        <LangVersion>latest</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <Nullable>enable</Nullable>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <IncludeSymbols>true</IncludeSymbols>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <None Include="..\..\assets\icon.png" Pack="true" Visible="false" PackagePath="" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Serilog" Version="4.0.0"/>
+        <PackageReference Include="Nullable" Version="1.3.1" PrivateAssets="all" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\..\assets\icon.png" Pack="true" Visible="false" PackagePath=""/>
+        <None Include="..\..\README.md" Pack="true" Visible="false" PackagePath=""/>
+    </ItemGroup>
 
 </Project>
